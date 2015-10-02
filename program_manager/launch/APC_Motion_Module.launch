@@ -1,0 +1,15 @@
+<launch>
+    <node pkg="identification" type="identification_node" name="Identification_module" cwd="node" respawn="true" output="screen" />
+    <node pkg="registration" type="registration_node" name="Registration_module" cwd="node" respawn="true" output="screen" />
+     <node pkg="RGBD_Capture" type="capture_node" name="capture_module" cwd="node" respawn="true" output="screen" />
+    
+  <node pkg="program_manager" type="motion_module.py" name="motion_module" cwd="node" respawn="false" output="screen" >
+	<rosparam command="load" ns="point" file="$(find program_manager)/output_mantis.yaml" />
+	 
+	
+ </node>
+ 
+
+
+ 
+</launch>

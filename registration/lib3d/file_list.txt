@@ -1,0 +1,27 @@
+oreo_mega_stuf\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+champion_copper_plus_spark_plug\textured_meshes\visual_hull_refined_smoothed.obj
+expo_dry_erase_board_eraser\textured_meshes\visual_hull_refined_smoothed.obj
+genuine_joe_plastic_stir_sticks\textured_meshes\completed_tsdf_texture_mapped_mesh.obj
+munchkin_white_hot_duck_bath_toy\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+crayola_64_ct\textured_meshes\visual_hull_refined_smoothed.obj
+mommys_helper_outlet_plugs\textured_meshes\visual_hull_refined_smoothed.obj
+sharpie_accent_tank_style_highlighters\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+stanley_66_052\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+safety_works_safety_glasses\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+cheezit_big_original\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+paper_mate_12_count_mirado_black_warrior\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+feline_greenies_dental_treats\textured_meshes\visual_hull_refined_smoothed.obj
+elmers_washable_no_run_school_glue\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+mead_index_cards\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+first_years_take_and_toss_straw_cups\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+highland_6539_self_stick_notes\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+mark_twain_huckleberry_finn\textured_meshes\optimized_poisson_texture_mapped_mesh.obj
+kygen_squeakin_eggs_plush_puppies\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+kong_sitting_frog_dog_toy\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+rollodex_mesh_collection_jumbo_pencil_cup\textured_meshes\visual_hull_refined_smoothed.obj
+kong_air_dog_squeakair_tennis_ball\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+kong_duck_dog_toy\textured_meshes\optimized_tsdf_texture_mapped_mesh.obj
+#==================================================================================================
+# not included in Berkeley database
+dr_browns_bottle_brush
+laugh_out_loud_joke_book

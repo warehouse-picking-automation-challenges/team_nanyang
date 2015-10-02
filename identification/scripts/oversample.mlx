@@ -1,0 +1,34 @@
+<!DOCTYPE FilterScript>
+
+<!-- 
+
+ "supersample" Meshlabserver script 
+ 
+ This script will use Poisson-disk sampling to obtain more surface samples from a surface, and then output this as a point cloud.
+ The output will have many more vertices than the input, allowing it to be used to generate a much denser depth image.
+ 
+ by Stephen Vidas stephen.vidas@gmail.com
+ 
+ This script was designed with guidance from Andrew Hazelden's blog:
+ http://www.andrewhazelden.com
+
+-->
+
+<FilterScript>
+ <filter name="Poisson-disk Sampling">
+  <Param value="500000" name="SampleNum" tooltip="The desired number of samples. The ray of the disk is calculated according to the sampling density." type="RichInt" description="Number of samples"/>
+  <Param value="0" min="0" max="740.274" name="Radius" tooltip="If not zero this parameter override the previous parameter to allow exact radius specification" type="RichAbsPerc" description="Explicit Radius"/>
+  <Param value="20" name="MontecarloRate" tooltip="The over-sampling rate that is used to generate the intial Montecarlo samples (e.g. if this parameter is &lt;i>K&lt;/i> means that&lt;i>K&lt;/i> x &lt;i>poisson sample&lt;/i> points will be used). The generated Poisson-disk samples are a subset of these initial Montecarlo samples. Larger this number slows the process but make it a bit more accurate." type="RichInt" description="MonterCarlo OverSampling"/>
+  <Param value="false" name="ApproximateGeodesicDistance" tooltip="If true Poisson Disc distances are computed using an approximate geodesic distance, e.g. an euclidean distance weighted by a function of the difference between the normals of the two points." type="RichBool" description="Approximate Geodesic Distance"/>
+  <Param value="false" name="Subsample" tooltip="If true the original vertices of the base mesh are used as base set of points. In this case the SampleNum should be obviously much smaller than the original vertex number.&lt;br>Note that this option is very useful in the case you want to subsample a dense point cloud." type="RichBool" description="Base Mesh Subsampling"/>
+  <Param value="false" name="RefineFlag" tooltip="If true the vertices of the below mesh are used as starting vertices, and they will utterly refined by adding more and more points until possible. " type="RichBool" description="Refine Existing Samples"/>
+  <Param value="0" name="RefineMesh" tooltip="Used only if the above option is checked. " type="RichMesh" description="Samples to be refined"/>
+  <Param value="true" name="BestSampleFlag" tooltip="If true it will use an heuristic for choosing the samples that at a small cost can improve the maximality of the generated sampling. It can slow a bit the process. " type="RichBool" description="Best Sample Heuristic"/>
+  <Param value="10" name="BestSamplePool" tooltip="Used only if the Best Sample Flag is true. It control the number of attempt that it makes to get the best sample. It is reasonable that it is smaller than the Montecarlo oversampling factor." type="RichInt" description="Best Sample Pool Size"/>
+ </filter>
+ <filter name="Select All">
+  <Param value="true" name="allFaces" tooltip="If true the filter will select all the faces." type="RichBool" description="Select all Faces"/>
+  <Param value="false" name="allVerts" tooltip="If true the filter will select all the vertices." type="RichBool" description="Select all Vertices"/>
+ </filter>
+ <filter name="Delete Selected Faces"/>
+</FilterScript>

@@ -1,0 +1,9 @@
+%YAML:1.0
+VOXEL_Unit: 0.005
+FEAT_NormalEstimateRadius: 0.02
+FEAT_FeatureEstimateRadius: 0.05
+FEAT_AlignSampleNumber: 3
+FEAT_AlignCorrespondenceRandomness: 2
+FEAT_AlignSimilarityThreshold: 0.9
+FEAT_AlignMaxCorrespondenceDistanceFactor: 2.5
+FEAT_AlignInlierFraction: 0.25

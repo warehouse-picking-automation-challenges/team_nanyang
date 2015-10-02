@@ -1,0 +1,10 @@
+int16 command # 0. Standby, 1. Grasp, 2. Release, 3. Check_item, 9. 
+int16 item_id #item id	
+float64[] target_pose #item Position from perception target_pose[] = {x, y, z, a, b, c}
+int16 attempt
+int16 implemented_method
+---
+int16 status # 0. Error Occured, 1. Ready to Grasp, 2. Grasped, 3. Released, 4. Item Checked Secured,  
+float64[] grasping_pose #Gripper Position grasping_pose[] = {x, y, z, a, b, c}
+int16 method # 0. Finger, 1. Front Suction, 2. Top suction
+

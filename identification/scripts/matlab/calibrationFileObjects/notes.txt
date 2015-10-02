@@ -1,0 +1,23 @@
+H_NPx_from_NP5
+transformation from specified cam to reference cam NP5, 4x4 matrix, data given transposed
+eg H_NP1_from_NP5, transpose the data
+	0.999203211812446       -0.0399107231139761      0.000275107634271899        0.0692017107719567
+	0.000275154644771316         0.013781181099979         0.999904997155935        -0.831202760112467
+    -0.0399107227899015        -0.999108208968382         0.013781182038509         0.747587670226223
+	0                         0                         0                         1
+
+NPx_rgb_K
+rgb cam intrinsic matrix for primesense carmine sensor, 3x3 matrix, data given transposed
+eg NP1_rgb_K, transpose
+1073.10513232791                         0          628.221523783738
+0          1073.11438772845          505.836823501165
+0                         0                         1
+
+NPx_rgb_d
+rgb cam distortion matrix, 5x1 vector given, transposed, suggests plumb bob distortion
+eg NP1_rgb_d, transpose
+-0.0343530834532713        0.0824212345765656       0.00259368917617707       0.00103301678958189        0.0966919789892551
+
+NPx_rvecs and _tvecs give 1x3x16 matrix, unsure
+
+flags gives value 232, likely 8-bit binary flags, ob11101000, no explanation by Berkeley, unsure

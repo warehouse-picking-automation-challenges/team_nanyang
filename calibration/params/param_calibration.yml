@@ -1,0 +1,16 @@
+%YAML:1.0
+calibrationDate: "Sat May 09 23:41:16 2015\n"
+Hue Threshold:
+   - 91
+   - 128
+Saturation Threshold:
+   - 98
+   - 255
+Value Threshold:
+   - 16
+   - 246
+Depth Threshold:
+   - 660
+   - 1624
+Number of Markers: 8
+Marker Radius: 1.4999999664723873e-002

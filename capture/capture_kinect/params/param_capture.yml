@@ -1,0 +1,36 @@
+%YAML:1.0
+calibrationDate: "Tue Mar 31 21:01:17 2015\n"
+isDevelopmentMode: 1
+Hue Threshold:
+   - 0
+   - 179
+Saturation Threshold:
+   - 0
+   - 255
+Value Threshold:
+   - 160
+   - 255
+Depth Threshold:
+   - 400
+   - 1000
+ROI region: [ 80, 60, 480, 320 ]
+Camera Pitch Anlge: 13 
+Camera Backwall Distance: 0.95
+FrameID: 0
+RGBD File: "E:/WorkSpace/WP5-NTU/AmazonPicking/objects in shelf/kinect 1/kinect_data/build/bin/Release/data/data_20150401173932/vkDatas.txt"
+Bin Size: !!opencv-matrix
+   rows: 12
+   cols: 3
+   dt: f
+   data: [ 0.27, 0.25, 0.4, # bin_A
+       0.3, 0.25, 0.4,  # bin_B
+       0.27, 0.25, 0.4, # bin_C
+       0.27, 0.21, 0.4, # bin_D
+       0.3, 0.21, 0.4,  # bin_E
+       0.27, 0.21, 0.4, # bin_F
+       0.27, 0.21, 0.4, # bin_G
+       0.3, 0.21, 0.4,  # bin_H
+       0.27, 0.21, 0.4, # bin_I
+       0.27, 0.25, 0.4, # bin_J
+       0.3, 0.25, 0.4,  # bin_K
+       0.27, 0.25, 0.4] # bin_L

@@ -1,0 +1,7 @@
+string bin  
+string action 
+float64[] target_pose
+int16 suction_method
+---
+bool reply 
+string pose 

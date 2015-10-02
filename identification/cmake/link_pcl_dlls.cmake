@@ -1,0 +1,22 @@
+LIST(APPEND PCL_DLLs_List "common" "visualization" "io" "kdtree" "io_ply" "search" "octree" "filters" "sample_consensus")
+
+IF(PCL_FOUND_WITH_KINFU)
+	include_directories(${KinfuAppDir})
+	LIST(APPEND PCL_DLLs_List "gpu_kinfu" "gpu_containers")
+ENDIF()
+
+SET(pcl_LIBRARIES ${PCL_LIBRARIES})
+
+SET(PCL_Debug_Abbrev "debug")
+SET(PCL_Release_Abbrev "release")
+foreach(ARCH "Debug" "Release")
+	SET(PCL_MISSING_DLL FALSE)
+	foreach(PCL_SUB_LIB ${PCL_DLLs_List}) 
+		IF(EXISTS "${PCL_DIR}/bin/pcl_${PCL_SUB_LIB}_${PCL_${ARCH}_Abbrev}.${DLL_EXT}")
+			add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PCL_DIR}/bin/pcl_${PCL_SUB_LIB}_${PCL_${ARCH}_Abbrev}.${DLL_EXT}" $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>)
+		ELSEIF(NOT PCL_MISSING_DLL)
+			MESSAGE(WARNING "Unable to find DLL at ${PCL_DIR}/bin/pcl_${PCL_SUB_LIB}_${PCL_${ARCH}_Abbrev}.${DLL_EXT} - has PCL ${ARCH} been correctly built? Including with GPU/KinectFusion modules (if required)?")
+			SET(PCL_MISSING_DLL TRUE)
+		ENDIF()
+	endforeach(PCL_SUB_LIB) 
+endforeach(ARCH)

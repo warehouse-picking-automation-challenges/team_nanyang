@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="program_manager" type="send_point.py" name="send_point" cwd="node" respawn="false" output="screen" >
+	<rosparam command="load" ns="point" file="$(find program_manager)/output.yaml"/>
+ </node>
+ 
+</launch>

@@ -1,0 +1,36 @@
+%YAML:1.0
+calibrationDate: "Fri Mar 13 11:42:29 2015/n"
+isDevelopmentMode: 1
+useSampleModel: 0
+Hue Threshold:
+   - 0
+   - 179
+Saturation Threshold:
+   - 0
+   - 255
+Value Threshold:
+   - 167
+   - 255
+Depth Threshold:
+   - 400
+   - 1000
+ROI region: [ 80, 60, 480, 320 ]
+Model Name: "stanley_66_052"
+###############
+# bin_name<-->fid map for current RGBD file
+RGBD File: "E:/WorkSpace/WP5-NTU/AmazonPicking/objects in shelf/kinect 1/kinect_data/build/bin/Release/data/data_20150401173932/vkDatas.txt"
+Bin Name: bin_E
+FrameID: 3
+Fid2Bin: "HGIDEFJL"
+Multi-Grab: 4
+###############
+#RGBD File: "E:/WorkSpace/WP5-NTU/AmazonPicking/objects in shelf/kinect 1/kinect_data/build/bin/Release/data/11/vkDatas.txt"
+#Bin Name: bin_D
+#FrameID: 1
+#Fid2Bin: "EDFJL"
+#Multi-Grab: 1
+###############
+#RGBD File0: "E:/WorkSpace/WP5-NTU/AmazonPicking/objects in shelf/kinect 1/kinect_data/build/bin/Release/data/data_20150422105215/vkDatas.txt"
+#FrameID: 0
+##############
+RGBD File0: "E:/WorkSpace/WP5-NTU/AmazonPicking/objects in shelf/kinect 1/kinect_data/build/bin/Release/data/data_20150512144049/vkDatas.txt"

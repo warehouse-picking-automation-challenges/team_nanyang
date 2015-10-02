@@ -1,0 +1,15 @@
+#request fields
+# passed from Identification module
+int16 blob_index 
+# passed from Identification module
+float32[] rotations
+# passed from Capture module
+string capture_folder
+# passed from Task_manager module, should be the same as that of Berkeley database
+string object_name
+---
+#response fields
+# object pose [x y z roll pitch yaw width height depth]
+float32[] pose
+# [0,1] 0 means failed
+float32 confidence

@@ -1,0 +1,14 @@
+#request fields
+# values of blob_num: 1,2,3
+int8 blob_number
+# values of bin_name: bin_A, bin_B, ..., bin_K
+string bin_name
+---
+#response fields
+# indicates the retrieve task is success or not
+bool succeed
+# kinect orientation
+float32[] kinect_angle
+# the directory of stored images
+string folder
+#sensor_msgs/Image[] images 

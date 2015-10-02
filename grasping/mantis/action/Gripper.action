@@ -1,0 +1,9 @@
+#goal definition
+string item_id
+---
+#result definition
+bool task_status
+---
+#feedback
+string current_status
+

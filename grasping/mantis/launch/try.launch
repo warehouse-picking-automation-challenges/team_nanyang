@@ -1,0 +1,6 @@
+<!-- -*- mode: XML -*- -->
+
+<launch>
+		<node name="action_planning" pkg="mantis" type="grasp_brain.py" output="screen" respawn="True">
+		</node>
+</launch>

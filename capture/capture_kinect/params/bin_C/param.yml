@@ -1,0 +1,16 @@
+%YAML:1.0
+calibrationDate: "Wed Mar 11 15:35:52 2015\n"
+isDevelopmentMode: 1
+Hue Threshold:
+   - 0
+   - 179
+Saturation Threshold:
+   - 0
+   - 255
+Value Threshold:
+   - 142
+   - 255
+Depth Threshold:
+   - 400
+   - 1000
+ROI region: [ 229, 150, 210, 189 ]

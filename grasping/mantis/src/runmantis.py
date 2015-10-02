@@ -1,0 +1,506 @@
+#!/usr/bin/env python
+
+import rospy
+import math
+import time
+import decimal
+
+import actionlib
+import mantis.msg
+
+import lib_robotis as rs
+from lib_robotis import *
+
+from grasp_brain import *
+from item_library_new import *
+from mantis.srv import *
+
+suc_lift_angle = math.radians(35)
+suc_lower_angle = math.radians(-55)
+suc_lift_speed = math.radians( 75 )
+suc_lower_speed = math.radians( 150 )
+
+grp_grasp = math.radians(179)
+grp_release = math.radians(-179)
+
+grp_standby_max = math.radians(-50)
+grp_standby_min = math.radians(50)
+grp_standby_poke = math.radians(178)
+
+grp_release_speed = math.radians( 250 )
+grp_grasp_speed = math.radians( 90 )
+
+multiturn_extend_int = int(-22000)
+multiturn_retract_int = int(2000)
+
+wheel_extend_speed = math.radians(-360)
+wheel_retract_speed = math.radians(360)
+
+strategy = 0
+standby_strategy = 0 
+grasp_strategy = 0
+suction_strategy = 0
+temp_grasp_strategy = 0
+
+# server parameter
+readings = [ 0.0 ] * 6
+reply_pos = [ 0.0 ] * 6
+target_pos = [ 0.0 ] * 10
+item = [ 0.0 ] * 10 
+temp = [ 0.0 ] * 10
+target = [ 0.0 ] * 10
+
+# initialise dynamixels
+dyn = USB2Dynamixel_Device('/dev/ttyUSB0')
+shf = Robotis_Servo( dyn, 1, series = "MX" )
+suc = Robotis_Servo( dyn, 2, series = "MX" )
+grs = Robotis_Servo( dyn, 3, series = "MX" )
+
+def dynamixel( readings ):	
+	readings[0] = 4 + round(math.degrees(shf.read_angle()), 0)
+	readings[1] = 33 + round( suc_lift_angle - math.degrees(suc.read_angle()), 0)
+	readings[2] = 177 + round(math.degrees(grs.read_angle()), 0)
+	readings[3] = round(shf.read_load(), 0)
+	readings[4] = round(suc.read_load(), 0)
+	readings[5] = round(grs.read_load(), 0)
+	info =	'all angles: \n' + '\n  shaft: ' + str(readings[0]) + '\n  suction: ' + str(readings[1]) + '\n  gripper: ' + str(readings[2]) + '\n\nall loads: \n' + '\n  shaft: ' + str(readings[3]) + '\n  suction: ' + str(readings[4]) + '\n  gripper: ' + str(readings[5]) + '\n-----------\n'
+	print info
+	if shf.is_moving() == True:
+		print "Servo is moving!!"	
+	time.sleep(0.1)
+
+def suctionlift():
+	suc.move_angle( suc_lift_angle, suc_lift_speed )
+	time.sleep( 1 )
+
+def suctionlower():	
+	suc.move_angle( suc_lower_angle, suc_lower_speed )
+	time.sleep( 1 )
+
+def wheel_retract():
+	print "retracting (wheel_mode)"	
+	temp_status = True
+	shf.init_cont_turn()
+	time.sleep( 0.1 )	
+	shf.set_angvel( wheel_retract_speed ) 
+	while temp_status != False:
+		re = shf.read_load()*-1
+		print "\r" + str(re),
+		time.sleep( 0.1 )
+		if re >= 200 and re <= 230:
+			shf.set_angvel( wheel_retract_speed*0.8 ) 
+			time.sleep(0.1)
+		elif re >= 231 and re <= 260:
+			shf.set_angvel( wheel_retract_speed*0.5 ) 
+			time.sleep(0.1)
+		elif re >= 261 and re <= 1000:
+			shf.set_angvel( 0 ) 
+			print "stopped"
+			temp_status = False
+		else:
+			shf.set_angvel( wheel_retract_speed )
+
+def multiturn_retract():
+	shf.multi_turn_pos( multiturn_retract_int )
+	print "retracting (multiturn_mode)"
+	while shf.is_moving() == True:
+		load = round(shf.read_load(), 0)		
+		print "\r" + str(load),
+		time.sleep(0.1)
+
+def multiturn_extend():
+	shf.multi_turn_pos( multiturn_extend_int )
+	print "extenting (multiturn_mode)"
+	while shf.is_moving() == True:
+		load = round( shf.read_load(), 0)		
+		print "\r" + str(load),
+		time.sleep(0.1)
+
+def multiturn_reset():
+	print "Multiturn Reset"
+	shf.init_multi_turn()
+	shf.multi_turn_pos( 0 )
+	temp_status = True
+	while temp_status == True:
+		angle = int(round(math.degrees(shf.read_angle()), 0))	
+		time.sleep( 0.1 )	
+		print angle
+		if angle == -180:
+			temp_status = False
+		else:
+			shf.multi_turn_pos( 0 )
+			time.sleep( 0.1 )	
+	print "Multiturn Reset Completed"
+
+def reset_all( readings ):
+	print "resetting...."
+	grs.kill_cont_turn()
+	suctionlower()	
+	suctionlift()
+	grasp_item()
+	wheel_retract()
+	multiturn_reset()
+	multiturn_retract()
+	release_item()
+	time.sleep(2)
+	dynamixel( readings )
+	total_error = readings[0] + readings[1] + readings[2] 	
+	if total_error <= 5:
+		print "ready to go"
+	else:
+		print "Manual Calibration needed"
+		while total_error >= 5:
+			raw_input("calibrated? Press enter to continue ")
+			dynamixel()
+			total_error = readings[0] + readings[1] + readings[2] 
+	return 30
+
+def release_item():
+	grs.move_angle( grp_release , grp_release_speed )
+	print "Releasing..."	
+	time.sleep( 0.1 )		
+	temp_status = True
+	while temp_status == True:
+		angle = round(math.degrees(grs.read_angle()), 1)
+		if angle >= grp_release:
+			grs.move_angle( grp_release , grp_release_speed )
+		elif angle <= grp_release:
+			print "Released"		
+			temp_status = False
+
+def grasp_item():
+	status = 0
+	temp_status = True
+	print "grasping.."
+	grs.move_angle( grp_grasp, grp_grasp_speed )
+	while	temp_status == True:
+		grasp_load = grs.read_load()*-1
+		grasp_angle = round( math.degrees( grs.read_angle() ), 1 )
+		print "\r" + str(grasp_load) + str(grasp_angle),
+		time.sleep( 0.1 )
+		if grasp_load >= 280 and grasp_load <= 600:
+			grs.move_angle( math.radians( grasp_angle + 5 ), math.radians( 0.2 ) )
+			temp_status = False
+			print "Grasped"
+			status = 20
+		elif grasp_load >= 120 and grasp_angle >= 175:
+			grs.move_angle( grp_grasp , math.radians( 0.2 ) )
+			temp_status = False
+			print "Grasped Softly"
+			status = 20
+		elif grasp_load <= 119 and grasp_angle > 175:
+			grs.move_angle( grp_standby_min , grp_release_speed )
+			temp_status = False
+			print "Grasp Failed"
+			status = 0
+	return status
+
+def grasp_standby_max():
+	grs.move_angle( grp_standby_max , grp_release_speed )
+	time.sleep( 0.5 )
+
+def grasp_standby_min():
+	grs.move_angle( grp_standby_min , grp_release_speed )
+	time.sleep( 0.5 )
+
+def grasp_standby_poke():
+	grs.move_angle( grp_standby_poke , grp_release_speed )
+	time.sleep( 0.5 )
+
+def check_gripper():
+	status = grasp_item()
+	if status == 20:
+		status = 40
+	else:
+		status = 41
+	return status
+
+def check_suc():
+	f = 0
+	k = 0
+	count = 5
+	while f < count:
+		k = k + round(suc.read_load(), 3)
+		time.sleep( 0.2 )
+		f += 1
+	if k/count > 100.0:
+		status = 51
+	else:
+		status = 50
+	return status
+
+def standby_mode( standby_strategy ):
+	if standby_strategy == 0: 
+		print "dummy Standby"
+	elif standby_strategy == 1: 
+		print "Suction front Standby"
+		suctionlower()
+		multiturn_retract()
+		release_item()
+	elif standby_strategy == 2: 
+		print "Suction bottom Standby"
+		suctionlower()
+		multiturn_retract()
+		release_item()
+	elif standby_strategy == 3: 
+		print "Pick big Item Standby" 
+		suctionlift()
+		multiturn_extend()
+		grasp_standby_max()
+	elif standby_strategy == 4: 
+		print "Pick small Item Standby" 
+		suctionlift()
+		multiturn_extend()
+		grasp_standby_min()
+	elif standby_strategy == 5: 
+		print "Suction Side"
+		suctionlower()
+		multiturn_retract()
+		release_item()
+	elif standby_strategy == 6: 
+		print "Front Suction + Big Grasp"
+		grasp_standby_min()
+		suctionlower()
+		multiturn_extend()
+	elif standby_strategy == 7: 
+		print "Front Suction + Big Grasp"
+		grasp_standby_max()
+		suctionlower()
+		multiturn_extend()
+	elif standby_strategy == 8: 
+		print "Suction bottom Thin object Standby"
+		suctionlower()
+		multiturn_retract()
+		release_item()
+	elif standby_strategy == 9: 
+		print "Special Item - Grasping"
+		suctionlift()
+		multiturn_extend()
+		grasp_standby_min()
+	elif standby_strategy == 10: 
+		print "Use Big Grasp to straighten Item"
+		suctionlift()
+		multiturn_extent()
+		grasp_standby_max()
+	elif standby_strategy == 11: 
+		print "Use Fingers to push down Item"
+		suctionlift()
+		multiturn_extent()
+		grasp_standby_poke()
+	elif standby_strategy == 12: 
+		print "Use Fingers to push item to side"
+		suctionlift()
+		multiturn_extent()
+		grasp_standby_poke()
+	return 10	
+	
+def grasping( grasp_strategy ):
+	status = 0
+	if grasp_strategy == 0:
+		print "grasp_strategy = dummy"		
+		status = 20
+	elif grasp_strategy == 1:
+		print "grasp_strategy = front suction only"		
+		suctionlift()
+		status = 20
+	elif grasp_strategy == 2: 
+		print "grasp_strategy = bottom suction only"
+		suctionlower()
+		status = 20
+	elif grasp_strategy == 3: 
+		print "grasp_strategy = big grasp only "
+		status = grasp_item()
+	elif grasp_strategy == 4:
+		print "grasp_strategy = small grasp only"
+		status = grasp_item()
+	elif grasp_strategy == 5:
+		print "grasp_strategy = bottom suction from side only"
+		suctionlower()
+		status = 20
+	elif grasp_strategy == 6:
+		print "grasp_strategy = front suction + big grasp"
+		suctionlift()
+		status = grasp_item()
+	elif grasp_strategy == 7: 
+		print "grasp_strategy = front suction + big grasp"	
+		suctionlift()
+		status = grasp_item()
+	elif grasp_strategy == 8:
+		print "grasp_strategy = bottom suction thin object only"
+		suctionlower()
+		status = 20
+	elif grasp_strategy == 9: 
+		print "grasp_strategy = "
+		status = grasp_item()
+	elif grasp_strategy == 10: 
+		print "grasp_strategy = Use Big Grasp to straighten Item"
+		suctionlift()
+		grasp_item()
+		multiturn_retract()
+		release_item()
+		status = 0
+	elif grasp_strategy == 11: 
+		print "grasp_strategy = Use Fingers to push down Item"
+		suctionlift()
+		multiturn_retract()
+		status = 0
+	elif grasp_strategy == 12: 
+		print "grasp_strategy = Use Fingers to push item to side"
+		suctionlift()
+		grasp_standby_min()
+		multiturn_retract()
+		release_item()
+		status = 0
+	return status
+
+def select_function():
+	k = input("command" )
+	if k == 1:
+		a = input("angle " )
+		grs.move_angle( math.radians(a) , grp_release_speed )
+		print a
+	elif k == 2:
+		grasp_standby_max()
+	elif k == 3:
+		grasp_standby_min()
+	elif k == 4:
+		multiturn_extend()
+	elif k == 5:
+		multiturn_retract()
+	elif k == 6:
+		grasp_item()
+	elif k == 7:
+		release_item()
+	elif k == 8:
+		suctionlift()
+	elif k == 9: 
+		suctionlower()
+	elif k >= 10 and k < 20:
+		standby_strategy = k - 10
+		standby_mode( standby_strategy )
+	elif k >= 20 and k < 30:
+		grasp_strategy = k - 20
+		grasping( grasp_strategy )
+	elif k == 30:
+		suctionlift()
+		multiturn_retract()
+		release_item()
+	elif k == 40:
+		suctionlift()
+		multiturn_extend()
+		grasp_standby_poke()
+	elif k == 50:
+		suctionlower()
+		while True:
+			l = round(suc.read_load(), 0)
+			print l
+			time.sleep( 0.5 )
+	else: 
+		print "invalid input"
+
+#-----------------------------------------------#
+#Gripper Planning
+#-----------------------------------------------#
+def gripper_planning( command_, target_pos_, item_id_, attempt_, method_ ):
+	global target_pos
+	global temp_grasp_strategy
+
+	status = 0
+	coor_cal = [0] *15*8
+	command = command_
+	item_id = item_id_
+	target_pos = target_pos_
+	attempt = attempt_
+	method = method_
+	grasping_pos = [0] * 63
+
+	print "Data from Program Manager: "
+	print command, item_id, target_pos , attempt, method
+
+	### 0. Standby, 1. Grasp, 2. Release, 3. Check_item ### 
+	if command >= 10 and command <= 30:	
+		comm = command - 10 
+		grasp_strategy = comm
+		temp_grasp_strategy = grasp_strategy
+		print "Command received: Grasp"
+		status = grasping( comm )
+	elif command >= 40 and command <= 60:	
+		comm = command - 40 
+		grasp_strategy = comm
+		print "Command received: Go to Standby Pos"
+		status = standby_mode( comm )
+	else:
+		if command == 0:
+			print "Command received: Plan gripping method"
+			grasping_pos, item_name = target_dimension( item_id, target_pos[9] )
+			print item_name
+			coor_cal = coordinate_quaternion( target_pos, grasping_pos, item_id )
+			status = 10
+		elif command == 2:  
+			print "Command received: Release"
+			grasp_standby_max()
+			suctionlift()			
+			shf.multi_turn_pos( multiturn_retract_int )
+			time.sleep( 1.0 )
+			release_item()
+			status = 30
+		elif command == 3:	
+			print "Command received: Check Item"
+			grasp_strategy = temp_grasp_strategy
+			if grasp_strategy == 3 or grasp_strategy == 4 or grasp_strategy == 6 or grasp_strategy == 7 :
+				status = check_gripper()
+			else:
+				status = 42
+		elif command == 5:
+			print "Command received: Check Suction Cup Collision"
+			status = check_suc()
+		elif command == 9:
+			print "Command received: Attempts and method counts"
+			#item_confidence = confidence( method, attempt )
+
+	### Status ###
+	if status == 10:
+		print "Gripper in standby position..."
+	elif status == 20:
+		print "Gripping action initiated..."
+	elif status == 30:
+		print "Gripper in released position..."
+	elif status == 40:
+		print "Item still secured..."
+	elif status == 41:
+		print "ITEM DROPPED..."
+	elif status == 42:
+		print "Finger not in used, check vacuum..."
+	elif status == 50:
+		print "No load, continue to go..."
+	elif status == 51:
+		print "Load on Suction Cup is High..."
+
+	return status, coor_cal, suction_strategy
+
+def service_gripper_com(req):
+	print "status "
+	status_f, reply_pos, method_f = gripper_planning( req.command, req.target_pose, req.item_id, req.attempt, req.implemented_method )
+	print "status " + str(status_f)
+	i = 0
+	while i < 120:
+		if reply_pos[i] != 0:
+			print reply_pos[i], reply_pos[i+1], reply_pos[i+2], reply_pos[i+3], reply_pos[i+4], reply_pos[i+5], reply_pos[i+6], reply_pos[i+7] 
+		i += 8
+#	print "\n"
+#	print "Suction Method " + str(method_f)
+	return SRV_GripperResponse( status_f, reply_pos, method_f )
+
+if __name__ == '__main__':
+	dynamixel( readings )
+	reset_all( readings )
+
+#	while True:
+#		select_function()
+
+	while not rospy.is_shutdown():
+		rospy.init_node('gripper_comm_server')
+		print "Grasping module started!!!!"
+		s = rospy.Service('gripper_comm', SRV_Gripper, service_gripper_com)
+		rospy.spin()
+	

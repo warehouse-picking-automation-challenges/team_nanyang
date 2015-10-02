@@ -1,0 +1,11 @@
+#request fields
+string folder #directory containing input image/mask/depth
+int16 object_count #number of objects in current view
+string[] search_objects #names of objects in current view
+---
+#response fields
+int16 blob_index #index of which blob is the target object
+float32 confidence #estimated probability that correct blob was matched
+float32 pre_confidence #estimated probability that correct view was matched
+string[] versions #names of which versions of the object were identified as best matched views
+float32[] rotations #set of rotations which transform the library 3D models to the rough estimated object poses

@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="identification" type="identification_node" name="identification_node" output="screen" >
+	</node>
+	<node pkg="identification" type="ros_testing_client.py" name="identification_client" cwd="node" respawn="false" output="screen" >
+	</node>
+</launch>
